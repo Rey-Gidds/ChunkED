@@ -64,7 +64,7 @@ export const handleIncomingMessage = (data: any, handlers: IncomingHandlers) => 
         receivedSize = 0;
         handlers.onReady(incomingMeta);
       } else if (msg.type === 'complete' && incomingMeta) {
-        const blob = new Blob(incomingBuffer, { type: incomingMeta.mimeType });
+        const blob = new Blob(incomingBuffer as BlobPart[], { type: incomingMeta.mimeType });
         const url = URL.createObjectURL(blob);
         handlers.onComplete({ name: incomingMeta.name, url });
         incomingMeta = null;
