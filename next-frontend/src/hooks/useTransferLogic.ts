@@ -41,7 +41,7 @@ export const useTransferLogic = () => {
 
     const ws = initWebSocket(sid);
 
-    webrtc.onIceCandidate((candidate) => {
+    webrtc.onIceCandidate((candidate: RTCIceCandidate) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'candidate', candidate }));
       }
@@ -52,7 +52,7 @@ export const useTransferLogic = () => {
     store.getState().setOfferPayload(joinUrl);
 
     // Signaling handler
-    ws.onmessage = async (e) => {
+    ws.onmessage = async (e: MessageEvent) => {
       try {
         const msg = JSON.parse(e.data);
         if (msg.type === 'answer') {
@@ -98,13 +98,13 @@ export const useTransferLogic = () => {
 
     const ws = initWebSocket(sid);
 
-    webrtc.onIceCandidate((candidate) => {
+    webrtc.onIceCandidate((candidate: RTCIceCandidate) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'candidate', candidate }));
       }
     });
 
-    ws.onmessage = async (e) => {
+    ws.onmessage = async (e: MessageEvent) => {
       try {
         const msg = JSON.parse(e.data);
         const state = store.getState().connectionState;
@@ -127,18 +127,18 @@ export const useTransferLogic = () => {
       store.getState().setConnectionState('Disconnected');
     });
 
-    webrtc.onMessage((data) => {
+    webrtc.onMessage((data: any) => {
       handleIncomingMessage(data, {
-        onReady: (meta) => {
+        onReady: (meta: any) => {
           store.getState().setIncomingFile({ ...meta, progress: 0 });
         },
-        onProgress: (loaded, total) => {
+        onProgress: (loaded: number, total: number) => {
           const current = store.getState().incomingFile;
           if (current) {
             store.getState().setIncomingFile({ ...current, progress: (loaded / total) * 100 });
           }
         },
-        onComplete: (result) => {
+        onComplete: (result: { name: string; url: string }) => {
           const current = store.getState().incomingFile;
           store.getState().addReceivedFile({
             id: Math.random().toString(36).substring(7),
@@ -149,7 +149,7 @@ export const useTransferLogic = () => {
             url: result.url,
           });
         },
-        onError: (err) => console.error('[Transfer]', err),
+        onError: (err: any) => console.error('[Transfer]', err),
       });
     });
   };
