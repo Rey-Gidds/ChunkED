@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.venv/
+env/
+venv/
+ENV/
+
+# Next.js
+next-frontend/.next/
+next-frontend/out/
+next-frontend/.env*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+agent/__pycache__/
+
+# Production build artifacts
+web/*
+!web/.gitkeep
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
