@@ -1,7 +1,7 @@
 export type FileMeta = {
   name: string;
   size: number;
-  type: string;
+  mimeType: string;
 };
 
 export const sendFile = async (
@@ -10,7 +10,7 @@ export const sendFile = async (
   onProgress: (sent: number, total: number) => void
 ) => {
   const CHUNK_SIZE = 16384; // 16KB
-  const meta: FileMeta = { name: file.name, size: file.size, type: file.type };
+  const meta: FileMeta = { name: file.name, size: file.size, mimeType: file.type };
   
   // Send metadata first
   channel.send(JSON.stringify({ type: 'meta', ...meta }));
@@ -59,12 +59,12 @@ export const handleIncomingMessage = (data: any, handlers: IncomingHandlers) => 
     try {
       const msg = JSON.parse(data);
       if (msg.type === 'meta') {
-        incomingMeta = { name: msg.name, size: msg.size, type: msg.type };
+        incomingMeta = { name: msg.name, size: msg.size, mimeType: msg.mimeType };
         incomingBuffer = [];
         receivedSize = 0;
         handlers.onReady(incomingMeta);
       } else if (msg.type === 'complete' && incomingMeta) {
-        const blob = new Blob(incomingBuffer, { type: incomingMeta.type });
+        const blob = new Blob(incomingBuffer, { type: incomingMeta.mimeType });
         const url = URL.createObjectURL(blob);
         handlers.onComplete({ name: incomingMeta.name, url });
         incomingMeta = null;
