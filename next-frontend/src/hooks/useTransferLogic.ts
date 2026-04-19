@@ -23,8 +23,7 @@ export const useTransferLogic = () => {
     if (wsRef.current) wsRef.current.close();
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // During local dev, Next.js runs on 3000, backend on 7734
-    const host = window.location.port === '3000' ? `${window.location.hostname}:7734` : window.location.host;
+    const host = process.env.BASE_URL;
     const ws = new WebSocket(`${protocol}//${host}/ws/signal/${sid}`);
     wsRef.current = ws;
     return ws;
