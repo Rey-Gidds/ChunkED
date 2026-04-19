@@ -32,6 +32,7 @@ type AppState = {
   setOfferPayload: (payload: string | null) => void;
   addToQueue: (items: TransferItem[]) => void;
   updateQueueItem: (id: string, updates: Partial<TransferItem>) => void;
+  removeFromQueue: (id: string) => void;
   addReceivedFile: (file: TransferItem) => void;
   setIncomingFile: (file: AppState['incomingFile']) => void;
   setIsTransferring: (is: boolean) => void;
@@ -55,6 +56,9 @@ export const useAppStore = create<AppState>((set: any) => ({
   addToQueue: (items: TransferItem[]) => set((state: AppState) => ({ transferQueue: [...state.transferQueue, ...items] })),
   updateQueueItem: (id: string, updates: Partial<TransferItem>) => set((state: AppState) => ({
     transferQueue: state.transferQueue.map((item) => item.id === id ? { ...item, ...updates } : item)
+  })),
+  removeFromQueue: (id: string) => set((state: AppState) => ({
+    transferQueue: state.transferQueue.filter((item) => item.id !== id)
   })),
   addReceivedFile: (file: TransferItem) => set((state: AppState) => ({ 
     receivedFiles: [file, ...state.receivedFiles],
