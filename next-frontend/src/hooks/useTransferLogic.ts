@@ -41,7 +41,9 @@ export const useTransferLogic = () => {
 
     const ws = initWebSocket(sid);
 
+    const localCandidates: RTCIceCandidate[] = [];
     webrtc.onIceCandidate((candidate: RTCIceCandidate) => {
+      localCandidates.push(candidate);
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'candidate', candidate }));
       }
@@ -84,6 +86,10 @@ export const useTransferLogic = () => {
       }
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(offer));
+        // Resend all gathered candidates for peers that connect late
+        localCandidates.forEach(candidate => {
+           ws.send(JSON.stringify({ type: 'candidate', candidate }));
+        });
       }
     }, 2000);
   };
@@ -104,11 +110,14 @@ export const useTransferLogic = () => {
       }
     });
 
+    let hasAnswered = false;
+
     ws.onmessage = async (e: MessageEvent) => {
       try {
         const msg = JSON.parse(e.data);
         const state = store.getState().connectionState;
-        if (msg.type === 'offer' && (state === 'Connecting' || state === 'Waiting for peer...')) {
+        if (msg.type === 'offer' && (state === 'Connecting' || state === 'Waiting for peer...') && !hasAnswered) {
+          hasAnswered = true;
           const answer = await webrtc.createAnswer(msg);
           ws.send(JSON.stringify(answer));
         } else if (msg.type === 'candidate') {
