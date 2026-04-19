@@ -7,6 +7,7 @@ from typing import Dict, List
 from fastapi.middleware.cors import CORSMiddleware
 import dotenv
 import os
+from fastapi.responses import FileResponse
 
 dotenv.load_dotenv()
 
@@ -48,17 +49,45 @@ async def websocket_endpoint(websocket: WebSocket, sid: str):
         if not rooms[sid]:
             del rooms[sid]
 
-# Serve static files — tries "next-frontend/out" first (production build),
-# then falls back to the legacy "web" directory.
-out_dir = Path(__file__).parent.parent / "next-frontend" / "out"
-web_dir = Path(__file__).parent.parent / "web"
+# Resolve static directories
+BASE_DIR = Path(__file__).parent.parent
+out_dir = BASE_DIR / "next-frontend" / "out"
+web_dir = BASE_DIR / "web"
+
+print(f"[INFO] Checking for static files in: {out_dir}")
 
 if out_dir.exists():
-    app.mount("/", StaticFiles(directory=str(out_dir), html=True), name="static")
+    print(f"[INFO] Serving static files from: {out_dir}")
+    app.mount("/_next", StaticFiles(directory=str(out_dir / "_next")), name="next-static")
+    app.mount("/static", StaticFiles(directory=str(out_dir)), name="static")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Check if file exists in out_dir
+        file_path = out_dir / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        
+        # Fallback to index.html for SPA routing
+        index_path = out_dir / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+        
+        return {"detail": "Not Found", "searched": str(full_path)}
+
 elif web_dir.exists():
+    print(f"[INFO] Serving legacy static files from: {web_dir}")
     app.mount("/", StaticFiles(directory=str(web_dir), html=True), name="static")
 else:
-    print("[WARN] No static directory found. Run 'npm run build' inside next-frontend/ first, or use the Next.js dev server on port 3000.")
+    print(f"[WARN] No static directory found. BASE_DIR={BASE_DIR}")
+    @app.get("/")
+    async def root_fallback():
+        return {
+            "error": "Static directory not found",
+            "searched_paths": [str(out_dir), str(web_dir)],
+            "cwd": os.getcwd(),
+            "base_dir": str(BASE_DIR)
+        }
 
 # To get the device's own IP address
 def get_local_ip():
