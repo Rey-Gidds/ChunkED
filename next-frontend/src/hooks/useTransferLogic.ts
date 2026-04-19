@@ -22,8 +22,11 @@ export const useTransferLogic = () => {
   const initWebSocket = (sid: string): WebSocket => {
     if (wsRef.current) wsRef.current.close();
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = process.env.BASE_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    const url = new URL(baseUrl);
+    const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = url.host;
+
     const ws = new WebSocket(`${protocol}//${host}/ws/signal/${sid}`);
     wsRef.current = ws;
     return ws;
@@ -49,7 +52,8 @@ export const useTransferLogic = () => {
     });
 
     const offer = await webrtc.createOffer();
-    const joinUrl = `${window.location.origin}/?sid=${sid}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    const joinUrl = `${baseUrl}/?sid=${sid}`;
     store.getState().setOfferPayload(joinUrl);
 
     // Signaling handler

@@ -1,0 +1,16 @@
+{
+  "name": "ChunkED",
+  "short_name": "ChunkED",
+  "description": "Fast, private peer-to-peer file sharing via WebRTC.",
+  "start_url": "https://chunked.onrender.com",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
