@@ -82,11 +82,14 @@ else:
     print(f"[WARN] No static directory found. BASE_DIR={BASE_DIR}")
     @app.get("/")
     async def root_fallback():
+        import os
         return {
             "error": "Static directory not found",
             "searched_paths": [str(out_dir), str(web_dir)],
             "cwd": os.getcwd(),
-            "base_dir": str(BASE_DIR)
+            "base_dir": str(BASE_DIR),
+            "contents_of_base_dir": os.listdir(BASE_DIR) if BASE_DIR.exists() else "BASE_DIR missing",
+            "contents_of_next_frontend": os.listdir(BASE_DIR / "next-frontend") if (BASE_DIR / "next-frontend").exists() else "next-frontend missing"
         }
 
 # To get the device's own IP address

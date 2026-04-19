@@ -3,15 +3,8 @@ services:
     name: chunked
     env: node
     plan: free
-    buildCommand: |
-      # Build the frontend
-      cd next-frontend
-      npm install
-      npm run build
-      cd ..
-      # Install backend dependencies
-      pip install -r requirements.txt
-    startCommand: python agent/main.py
+    buildCommand: "cd next-frontend && npm install && npm run build && cd .. && pip install -r requirements.txt && ls -R next-frontend/out"
+    startCommand: "python agent/main.py"
     envVars:
       - key: PORT
         value: 10000
