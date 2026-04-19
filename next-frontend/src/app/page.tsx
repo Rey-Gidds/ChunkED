@@ -10,7 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, Download, Plus, Scan, Files, ArrowLeft,
-  Check, Wifi, WifiOff, Loader2
+  Check, Wifi, WifiOff, Loader2, X
 } from 'lucide-react';
 
 /* ─── Styles object ─── */
@@ -124,6 +124,7 @@ export default function Home() {
   const currentSending = store.transferQueue.find(i => i.status === 'sending');
   const completedItems = store.transferQueue.filter(f => f.status === 'complete');
   const queuedItems = store.transferQueue.filter(f => f.status === 'queued');
+  const errorItems = store.transferQueue.filter(f => f.status === 'error');
   const isConnected = store.connectionState === 'Connected';
 
   return (
@@ -277,6 +278,19 @@ export default function Home() {
                       <Files size={16} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
                       <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
                       <span style={{ fontSize: 12, color: 'var(--fg-muted)', flexShrink: 0 }}>Queued</span>
+                      <button
+                        onClick={() => store.removeFromQueue(f.id)}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: 'var(--fg-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          padding: 4, marginLeft: 4, borderRadius: '50%'
+                        }}
+                        title="Remove from queue"
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
                   ))}
 
@@ -290,6 +304,19 @@ export default function Home() {
                       <Check size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
                       <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
                       <span style={{ fontSize: 12, color: 'var(--success)', flexShrink: 0 }}>Sent</span>
+                    </div>
+                  ))}
+
+                  {errorItems.map(f => (
+                    <div key={f.id} style={{
+                      padding: '12px 16px', borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border)', opacity: 0.8,
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      fontSize: 14, background: 'rgba(239, 68, 68, 0.05)'
+                    }}>
+                      <WifiOff size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                      <span style={{ fontSize: 12, color: '#ef4444', flexShrink: 0 }}>Failed</span>
                     </div>
                   ))}
                 </div>

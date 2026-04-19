@@ -17,6 +17,8 @@ export const sendFile = async (
 
   const reader = file.stream().getReader();
   let sent = 0;
+  let lastProgressReport = 0;
+  let bufferFullWaitTime = 0;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -27,8 +29,15 @@ export const sendFile = async (
       // Flow control: wait if buffer is full (> 1MB)
       if (channel.bufferedAmount > 1024 * 1024) {
         await new Promise((resolve) => setTimeout(resolve, 50));
+        bufferFullWaitTime += 50;
+        
+        if (bufferFullWaitTime > 30000) { // 30 seconds
+          throw new Error('Transfer timed out: receiver dropped or network is too slow.');
+        }
         continue;
       }
+
+      bufferFullWaitTime = 0; // buffer drained successfully
 
       const end = Math.min(offset + CHUNK_SIZE, value.length);
       const chunk = value.slice(offset, end);
@@ -36,7 +45,12 @@ export const sendFile = async (
       
       offset = end;
       sent += chunk.length;
-      onProgress(sent, file.size);
+      
+      const now = Date.now();
+      if (now - lastProgressReport > 100 || sent === file.size) {
+        onProgress(sent, file.size);
+        lastProgressReport = now;
+      }
     }
   }
 
@@ -53,6 +67,7 @@ type IncomingHandlers = {
 let incomingBuffer: Uint8Array[] = [];
 let incomingMeta: FileMeta | null = null;
 let receivedSize = 0;
+let lastReceiveProgressReport = 0;
 
 export const handleIncomingMessage = (data: any, handlers: IncomingHandlers) => {
   if (typeof data === 'string') {
@@ -79,6 +94,11 @@ export const handleIncomingMessage = (data: any, handlers: IncomingHandlers) => 
     
     incomingBuffer.push(new Uint8Array(data));
     receivedSize += data.byteLength;
-    handlers.onProgress(receivedSize, incomingMeta.size);
+    
+    const now = Date.now();
+    if (now - lastReceiveProgressReport > 100 || receivedSize === incomingMeta.size) {
+      handlers.onProgress(receivedSize, incomingMeta.size);
+      lastReceiveProgressReport = now;
+    }
   }
 };
