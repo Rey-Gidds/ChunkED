@@ -6,9 +6,16 @@ export class WebRTCManager {
   private closeCallback: (() => void) | null = null;
   private messageCallback: ((data: any) => void) | null = null;
 
+  private candidateQueue: RTCIceCandidateInit[] = [];
+
   constructor() {
     this.pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun.services.mozilla.com' },
+      ],
     });
 
     this.pc.onicecandidate = (e) => {
@@ -53,18 +60,34 @@ export class WebRTCManager {
   }
 
   async applyAnswer(answer: RTCSessionDescriptionInit) {
+    if (this.pc.signalingState === 'stable') return;
     await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
+    await this.processCandidateQueue();
   }
 
   async createAnswer(offer: RTCSessionDescriptionInit) {
     await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
+    await this.processCandidateQueue();
     return answer;
   }
 
   async addIceCandidate(candidate: RTCIceCandidateInit) {
-    await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    if (this.pc.remoteDescription && this.pc.remoteDescription.type) {
+      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+      this.candidateQueue.push(candidate);
+    }
+  }
+
+  private async processCandidateQueue() {
+    while (this.candidateQueue.length > 0) {
+      const candidate = this.candidateQueue.shift();
+      if (candidate) {
+        await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+    }
   }
 
   sendRaw(data: string | ArrayBuffer | Blob | ArrayBufferView) {
