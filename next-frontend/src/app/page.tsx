@@ -176,7 +176,7 @@ export default function Home() {
                     <Send size={28} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Send</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: 'white' }}>Send</div>
                     <div style={{ fontSize: 13, color: 'var(--fg-muted)' }}>Show QR code</div>
                   </div>
                 </button>
