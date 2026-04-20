@@ -191,7 +191,7 @@ export default function Home() {
                     <Download size={28} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Receive</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: 'white' }}>Receive</div>
                     <div style={{ fontSize: 13, color: 'var(--fg-muted)' }}>Scan QR code</div>
                   </div>
                 </button>
